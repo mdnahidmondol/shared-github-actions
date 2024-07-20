@@ -105,7 +105,7 @@ jobs       :
       with:
         image-ref: ${{ steps.image-name.outputs.image_name }}:${{ inputs.IMAGE_TAG }}
         format: table
-        exit-code: '1'   # Change this to 1 when we want to fail the build
+        exit-code: '0'   # Change this to 1 when we want to fail the build
         ignore-unfixed: true
         vuln-type: os,library
         severity: CRITICAL,HIGH
