@@ -1,14 +1,23 @@
-# shared-github-actions
-Central manage github actions workflow
-sudo git remote add origin git@github.com:mdnahidmondol/shared-github-actions.git
-git push -u origin main
+# GitHub Actions Workflows
 
+This repository contains reusable GitHub Actions workflows that can be referenced in other repositories.
 
-sudo git remote set-url origin personal.github.com:mdnahidmondol/shared-github-actions.git
+## Usage
 
-sudo git config user.name "mdnahidmondol"
-sudo git config user.email "mdnahidmondol@gmail.com"
+To reuse a workflow from this repository in another repository, follow these steps:
 
-git remote add origin personal.github.com:mdnahidmondol/shared-github-actions.git
-ssh -T git@personal.github.com
-Hi mdnahidmondol! You've successfully authenticated, but GitHub does not provide shell access.
+1. **Reference the Workflow:**
+   In your repository, create a YAML file in the `.github/workflows/` directory. Use the `uses` keyword to reference the workflow from this repository.
+
+   Example:
+   ```yaml
+   name: Reused CI Workflow
+
+   on:
+     push:s
+       branches:
+         - main
+
+   jobs:
+     build:
+       uses: mdnahidmondol/shared-github-actions/.github/workflows/java-spring-build-push-dockerhub.yml@main
