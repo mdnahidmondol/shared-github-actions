@@ -1,5 +1,5 @@
-name       : build-push-dockerhub
-on         :
+name: build-push-dockerhub
+on:
   workflow_call:
     inputs:
       CONTAINER_IMAGE_NAME:
@@ -70,19 +70,18 @@ jobs       :
     - name: Set image name
       id: image-name
       run: |
-        echo "image_name=${{ inputs.DOCKER_REPOSITORY }}:${{ inputs.CONTAINER_IMAGE_NAME }}" >> $GITHUB_OUTPUT
+        echo "image_name=${{ inputs.DOCKER_REPOSITORY }}/${{ inputs.CONTAINER_IMAGE_NAME }}" >> $GITHUB_OUTPUT
 
     - name: Docker meta
       uses: docker/metadata-action@v4
       id: image-meta
       with:
-        images: |
-          ${{ steps.image-name.outputs.image_name }}
+        images: ${{ steps.image-name.outputs.image_name }}
         tags: |
-          type=edge,branch=master
-          type=ref,event=branch,enable=false
-          type=ref,event=tag
           type=sha,format=long,prefix=sha-
+          type=ref,event=branch
+          type=ref,event=tag
+          type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
 
     - name: Build Image
       uses: docker/build-push-action@v4
@@ -90,7 +89,6 @@ jobs       :
         context: .
         push: false
         load: true
-          #platforms: linux/amd64,linux/arm64
         tags: ${{ steps.image-meta.outputs.tags }}
         labels: ${{ steps.image-meta.outputs.labels }}
         cache-from: type=gha
