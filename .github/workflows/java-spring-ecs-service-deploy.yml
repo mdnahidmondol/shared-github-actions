@@ -1,0 +1,57 @@
+name: deploy
+on:
+  workflow_call:
+    inputs:
+      ENVIRONMENT:
+          description: "Environment to be deployed"
+          required: true
+          type: 'string'
+      ECR_IMAGE_NAME:
+          description: "ECR Image Name to be used for deployment"
+          required: true
+          type: 'string'
+      IMAGE_TAG:
+          description: "Image Tag to be used for deployment"
+          required: true
+          type: 'string'
+      AWS_REGION:
+          description: "AWS Region which the ECR is located"
+          required: true
+          type: 'string'
+      ECR_ACCOUNT_ID:
+          description: "AWS Account ID which the ECR is located"
+          required: true
+          type: 'string'
+
+permissions:
+  id-token: write
+  contents: read
+  deployments: write
+  statuses: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.ENVIRONMENT }}
+    #needs: [notifs]
+    steps:
+      - name: Assume deploy role
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: ${{ inputs.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_WEB_DEPLOY_ROLE }}
+          role-duration-seconds: 1200
+      - name: ECS Deploy
+        uses: donaldpiret/ecs-deploy@master
+        with:
+          cluster: ${{ vars.CLUSTER_NAME }}
+          target: ${{ vars.SERVICE_NAME }}
+          image: app ${{ inputs.ECR_ACCOUNT_ID }}.dkr.ecr.ap-southeast-1.amazonaws.com/${{ inputs.ECR_IMAGE_NAME }}:${{ inputs.IMAGE_TAG }}
+          timeout: 1200
+      - name: Update SSM Param
+        run: |
+          aws ssm put-parameter --name "/${{ inputs.ENVIRONMENT }}/${{ inputs.ECR_IMAGE_NAME }}/app/IMAGE_TAG" \
+            --type "String" \
+            --value "${{ inputs.IMAGE_TAG }}" \
+            --overwrite
